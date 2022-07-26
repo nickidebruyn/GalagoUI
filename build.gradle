@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+}
+
+group 'com.galago.ui'
+version '1.1.1'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+project.ext {
+    jmeVer = '3.5.0-stable'
+}
+
+dependencies {
+    implementation "org.jmonkeyengine:jme3-core:$jmeVer"
+    implementation "org.jmonkeyengine:jme3-desktop:$jmeVer"
+
+    implementation "org.jmonkeyengine:jme3-lwjgl:$jmeVer"
+    //implementation "org.jmonkeyengine:jme3-lwjgl3:$jmeVer"
+
+    implementation "org.jmonkeyengine:jme3-effects:$jmeVer"
+    implementation "org.jmonkeyengine:jme3-jogg:$jmeVer"
+    implementation "org.jmonkeyengine:jme3-plugins:$jmeVer"
+
+    implementation files('libs/sfntly.jar')
+    implementation files('libs/android.jar')
+    implementation files('libs/tween-engine-api.jar')
+
+}
