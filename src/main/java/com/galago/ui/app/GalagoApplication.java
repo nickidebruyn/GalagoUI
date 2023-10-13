@@ -8,6 +8,7 @@ import com.galago.ui.Label;
 import com.galago.ui.Widget;
 import com.galago.ui.field.InputType;
 import com.galago.ui.field.ProgressBar;
+import com.galago.ui.input.Input;
 import com.galago.ui.listener.*;
 import com.galago.ui.listeners.*;
 import com.galago.ui.managers.*;
@@ -711,6 +712,17 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
 
         }
       }
+    }
+
+    //Listens to all other type of input mappings
+    if (Input.hasMapping(name)) {
+      if (isPressed) {
+        Input.set(name, 1);
+      } else {
+        Input.set(name, -1);
+      }
+    } else {
+      Input.set(name, 0);
     }
 
   }
@@ -1640,5 +1652,12 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
 
       resizeScreenToShowAction = currentScreen;
     }
+  }
+
+  public void registerInputMappings(String name, Trigger... triggers) {
+    inputManager.addMapping(name, triggers);
+    inputManager.addListener(this, name);
+    Input.registerInput(name);
+
   }
 }

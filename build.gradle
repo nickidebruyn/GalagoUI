@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'com.galago.ui'
-version '1.1.1'
+version '1.1.2'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -13,7 +13,7 @@ repositories {
 }
 
 project.ext {
-    jmeVer = '3.5.0-stable'
+    jmeVer = '3.5.2-stable'
 }
 
 dependencies {
@@ -29,6 +29,6 @@ dependencies {
 
     implementation files('libs/sfntly.jar')
     implementation files('libs/android.jar')
-    implementation files('libs/tween-engine-api.jar')
+    implementation files('libs/universal-tween-engine-6.3.3.jar')
 
 }
