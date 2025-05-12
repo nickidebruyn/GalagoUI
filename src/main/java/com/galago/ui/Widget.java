@@ -68,7 +68,7 @@ public abstract class Widget implements Savable {
       widgetNode = new Node("WidgetNode");
     }
 
-    window.log("Widget Size = (" + this.width + ", " + this.height + ")");
+    //window.log("Widget Size = (" + this.width + ", " + this.height + ")");
   }
 
   public GalagoApplication getApplication() {

@@ -4,13 +4,12 @@
  */
 package com.galago.ui.listener;
 
-import com.jme3.input.InputManager;
-import com.jme3.input.Joystick;
-import com.jme3.input.JoystickConnectionListener;
-import com.jme3.input.RawInputListener;
+import com.jme3.input.*;
 import com.jme3.input.event.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The RawInputListener can be used by a user to detect when a joystick action
@@ -25,8 +24,10 @@ public class JoystickInputListener implements RawInputListener, JoystickConnecti
   private boolean enabled = true;
   private JoystickEvent joystickEvent;
   private boolean debug = true;
-  private float deadZone = 0.1f;
+  private float deadZone = 0.2f;
   private boolean specialSetup = false;
+
+  private float analogStickTimer = 0;
 
   public JoystickInputListener() {
     joystickEvent = new JoystickEvent();
@@ -107,135 +108,160 @@ public class JoystickInputListener implements RawInputListener, JoystickConnecti
     }
   }
 
+  final private Map<JoystickAxis, Float> lastValues = new HashMap<>();
+
+  @Override
   public void onJoyAxisEvent(JoyAxisEvent evt) {
+    Float last = lastValues.remove(evt.getAxis());
+    float value = evt.getValue();
+
+    // Check the axis dead zone.  InputManager normally does this
+    // by default but not for raw events like we get here.
+    float effectiveDeadZone = Math.max(inputManager.getAxisDeadZone(), evt.getAxis().getDeadZone());
+    if (Math.abs(value) < effectiveDeadZone) {
+      if (last == null) {
+        // Just skip the event
+        return;
+      }
+      // Else set the value to 0
+      lastValues.remove(evt.getAxis());
+      value = 0;
+    }
+    doJoystickEvent(evt, value);
+
+    if (value != 0) {
+      lastValues.put(evt.getAxis(), value);
+    }
+  }
+
+  protected void doJoystickEvent(JoyAxisEvent evt, float value) {
 
 //        log("joystickEvent: " + joystickEvent.isButton3());
-    if (evt.getAxis().getJoystick() != null && !evt.isConsumed()) {
-//            log("\n----------------------------------------------------------------");
-//            log("> Start joystick axis input with id: " + evt.getJoyIndex());
-//            log("> Axis id: " + evt.getAxis().getAxisId() + "; logical id: " + evt.getAxis().getLogicalId() + ";  Val: " + evt.getValue() + "; Analog: " + evt.getAxis().isAnalog() + "; Deadzone : " + evt.getAxis().getDeadZone());
-
-//            //Exclusions
-//            if (evt.getValue() == 0 && evt.getAxis().getAxisId() == 6) {
-//                System.out.println("> Skip joystick axis");
-//                return;
-//            }
+//    if (evt.getAxis().getJoystick() != null && !evt.isConsumed()) {
       joystickEvent.setJoyAxisEvent(evt);
-//
-//            //Elliminate small values
-//            float val = evt.getValue();
-//            if (val > -0.1f && val < 0.1f) {
-//                log("> Setting val to 0");
-//                val = 0f;
-//            }
-
-      //Set the analog value
+      joystickEvent.setAnalog(evt.getAxis().isAnalog());
       joystickEvent.setAnalogValue(evt.getValue());
 
       //Set the joystick index
       joystickEvent.setJoystickIndex(evt.getJoyIndex());
 
-      if (evt.getAxis().getLogicalId().endsWith("x")) {
-        if (evt.getValue() > -deadZone && evt.getValue() < deadZone) {
-          joystickEvent.setLeft(true);
-          joystickEvent.setRight(true);
-          joystickEvent.setHorizontal(true);
-          joystickEvent.setAxisDown(false);
+      //Analog stick
+      if (joystickEvent.isAnalog()) {
+        joystickEvent.setAnalogValue(evt.getValue());
 
-        } else {
-          joystickEvent.setLeft(evt.getValue() <= -deadZone);
-          joystickEvent.setRight(evt.getValue() >= deadZone);
-          joystickEvent.setHorizontal(true);
-          joystickEvent.setAxisDown(true);
+        //Joy pads
+//        Debug.log("\nANALOG STICK EVENT\n-----------------------------------");
+//        Debug.log("Axis: " + evt.getAxis().getLogicalId());
+//        Debug.log("Value: " + evt.getValue());
+        if (evt.getAxis().getLogicalId().equals(JoystickAxis.Y_AXIS) && analogStickTimer == 0) {
+          if (value < 0.001f) {
+            joystickEvent.setDown(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setVertical(true);
+            analogStickTimer = 0.2f;
 
+          } else if (value > 0.001f) {
+            joystickEvent.setUp(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setVertical(true);
+            analogStickTimer = 0.2f;
+
+          }
+//          else {
+//            joystickEvent.setUp(true);
+//            joystickEvent.setDown(true);
+//            joystickEvent.setAxisDown(false);
+//            joystickEvent.setVertical(true);
+//            analogStickTimer = 0.2f;
+//          }
+
+
+        } else if (evt.getAxis().getLogicalId().equals(JoystickAxis.X_AXIS) && analogStickTimer == 0) {
+          if (value < 0.001f) {
+            joystickEvent.setLeft(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setHorizontal(true);
+            analogStickTimer = 0.2f;
+
+          } else if (value > 0.001f) {
+            joystickEvent.setRight(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setHorizontal(true);
+            analogStickTimer = 0.2f;
+
+          }
+//          else {
+//            joystickEvent.setRight(true);
+//            joystickEvent.setLeft(true);
+//            joystickEvent.setAxisDown(false);
+//            joystickEvent.setHorizontal(true);
+//            analogStickTimer = 0.2f;
+//          }
+//
         }
+
         fireJoystickEvent(joystickEvent, 1);
 
-      } else if (evt.getAxis().getLogicalId().endsWith("y")) {
-        if (evt.getValue() > -deadZone && evt.getValue() < deadZone) {
-          joystickEvent.setUp(true);
-          joystickEvent.setDown(true);
-          joystickEvent.setVertical(true);
-          joystickEvent.setAxisDown(false);
+      } else {
+        //Direction pad
+//        Debug.log("\nDIRECTION STICK EVENT\n-----------------------------------");
+//        Debug.log("Axis: " + evt.getAxis().getLogicalId());
+//        Debug.log("Value: " + evt.getValue());
+        if (evt.getAxis().getLogicalId().equals(JoystickAxis.POV_Y) && analogStickTimer == 0) {
+          if (value < 0) {
+            joystickEvent.setDown(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setVertical(true);
+            analogStickTimer = 0.2f;
 
-        } else {
-          joystickEvent.setDown(evt.getValue() <= -deadZone);
-          joystickEvent.setUp(evt.getValue() >= deadZone);
-          joystickEvent.setVertical(true);
-          joystickEvent.setAxisDown(true);
+          } else if (value > 0) {
+            joystickEvent.setUp(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setVertical(true);
+            analogStickTimer = 0.2f;
+
+          }
+//          else {
+//            joystickEvent.setUp(true);
+//            joystickEvent.setDown(true);
+//            joystickEvent.setAxisDown(false);
+//            joystickEvent.setVertical(true);
+//          }
+//
+//          fireJoystickEvent(joystickEvent, 1);
+
+        } else if (evt.getAxis().getLogicalId().equals(JoystickAxis.POV_X) && analogStickTimer == 0) {
+          if (value < 0) {
+            joystickEvent.setLeft(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setHorizontal(true);
+            analogStickTimer = 0.2f;
+
+          } else if (value > 0) {
+            joystickEvent.setRight(true);
+            joystickEvent.setAxisDown(true);
+            joystickEvent.setHorizontal(true);
+            analogStickTimer = 0.2f;
+
+          }
+//          else {
+//            joystickEvent.setRight(true);
+//            joystickEvent.setLeft(true);
+//            joystickEvent.setAxisDown(false);
+//            joystickEvent.setHorizontal(true);
+//            analogStickTimer = 0.2f;
+//
+//          }
+//
+//          fireJoystickEvent(joystickEvent, 1);
 
         }
+
         fireJoystickEvent(joystickEvent, 1);
 
       }
 
-//            //First check to see if button is down
-//            if ((val <= 1f) && (val >= -1f) && val != 0) {
-//
-//                if (evt.getAxis().getLogicalId().endsWith("x")) {
-//                    joystickEvent.setRight(val > 0);
-//                    joystickEvent.setLeft(val < 0);
-//                    joystickEvent.setHorizontal(true);
-//                    joystickEvent.setVertical(false);
-//                    joystickEvent.setDown(false);
-//                    joystickEvent.setUp(false);
-//                    joystickEvent.setAxisDown(true);
-//                    fireJoystickEvent(joystickEvent, 1);
-//                    log("> Do horizontal action on x");
-//
-//                } else if (evt.getAxis().getLogicalId().endsWith("y")) {
-//                    joystickEvent.setRight(false);
-//                    joystickEvent.setLeft(false);
-//                    if (evt.getAxis().isAnalog()) {
-//                        joystickEvent.setDown(val > 0);
-//                        joystickEvent.setUp(val < 0);
-//                    } else {
-//                        joystickEvent.setDown(val < 0);
-//                        joystickEvent.setUp(val > 0);
-//                    }
-//                    joystickEvent.setHorizontal(false);
-//                    joystickEvent.setVertical(true);
-//                    joystickEvent.setAxisDown(true);
-//                    fireJoystickEvent(joystickEvent, 1);
-//                    log("> Do vertical action on y");
-//
-//                }
-//
-//                return;
-//
-//            } else if (val == 0) {
-//
-//                //Now we check if a button was down and if it is now released
-//                if (evt.getAxis().getLogicalId().endsWith("x")) {
-//                    joystickEvent.setRight(true);
-//                    joystickEvent.setLeft(true);
-//                    joystickEvent.setDown(false);
-//                    joystickEvent.setUp(false);
-//                    joystickEvent.setHorizontal(true);
-//                    joystickEvent.setVertical(false);
-//                    log("> Do horizontal action on x");
-//                    joystickEvent.setAxisDown(false);
-//                    fireJoystickEvent(joystickEvent, 1);
-//
-//                } else if (evt.getAxis().getLogicalId().endsWith("y")) {
-//                    joystickEvent.setRight(false);
-//                    joystickEvent.setLeft(false);
-//                    joystickEvent.setDown(true);
-//                    joystickEvent.setUp(true);
-//                    joystickEvent.setHorizontal(false);
-//                    joystickEvent.setVertical(true);
-//                    log("> Do vertical action on y");
-//                    joystickEvent.setAxisDown(false);
-//                    fireJoystickEvent(joystickEvent, 1);
-//                }
-//
-//                return;
-//            } else {
-//                //Do nothing because it was already consumed
-//                log("> Do nothing");
-//                return;
-//            }
-    }
+//    }
 
   }
 
@@ -244,39 +270,25 @@ public class JoystickInputListener implements RawInputListener, JoystickConnecti
 //            log("\n======================= JOYSTICK BUTTON ======================");
 //            System.out.println("> onJoyButtonEvent = " + evt.getButton().getButtonId() + ";   down = " + evt.isPressed());
 
-      if (evt.getButton().getJoystick().getName() != null
-              && evt.getButton().getJoystick().getName().toLowerCase().contains("xbox")) {
-        specialSetup = true;
-
-      } else {
-        specialSetup = false;
-      }
-
       joystickEvent.setJoyButtonEvent(evt);
       joystickEvent.setJoystickIndex(evt.getJoyIndex());
       joystickEvent.setButtonDown(evt.isPressed());
-      joystickEvent.setButton1(evt.getButton().getButtonId() == 0);
-      joystickEvent.setButton2(evt.getButton().getButtonId() == 1);
-      if (specialSetup) {
-        joystickEvent.setButton3(evt.getButton().getButtonId() == 3);
-        joystickEvent.setButton4(evt.getButton().getButtonId() == 2);
-        joystickEvent.setButton5(evt.getButton().getButtonId() == 5);
-        joystickEvent.setButton6(evt.getButton().getButtonId() == 6);
 
-      } else {
-        joystickEvent.setButton3(evt.getButton().getButtonId() == 2);
-        joystickEvent.setButton4(evt.getButton().getButtonId() == 3);
-        joystickEvent.setButton5(evt.getButton().getButtonId() == 4);
-        joystickEvent.setButton6(evt.getButton().getButtonId() == 5);
-        joystickEvent.setButton7(evt.getButton().getButtonId() == 6);
-        joystickEvent.setButton8(evt.getButton().getButtonId() == 7);
-        joystickEvent.setButton9(evt.getButton().getButtonId() == 8);
-        joystickEvent.setButton10(evt.getButton().getButtonId() == 9);
-      }
+      joystickEvent.setButton0(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_0));
+      joystickEvent.setButton1(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_1));
+      joystickEvent.setButton2(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_2));
+      joystickEvent.setButton3(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_3));
+      joystickEvent.setButton4(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_4));
+      joystickEvent.setButton5(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_5));
+      joystickEvent.setButton6(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_6));
+      joystickEvent.setButton7(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_7));
+      joystickEvent.setButton8(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_8));
+      joystickEvent.setButton9(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_9));
+      joystickEvent.setButton10(evt.getButton().getLogicalId().endsWith(JoystickButton.BUTTON_10));
 
       fireJoystickEvent(joystickEvent, 1);
 
-      evt.setConsumed();
+//      evt.setConsumed();
     }
 
   }
@@ -424,5 +436,14 @@ public class JoystickInputListener implements RawInputListener, JoystickConnecti
   public void onDisconnected(Joystick joystick) {
     log("Joystick disconnected: " + joystick.getName());
 
+  }
+
+  public void update(float tpf) {
+//    analogStickTimer -= tpf;
+    analogStickTimer = 0;
+    if (analogStickTimer < 0) {
+      analogStickTimer = 0;
+
+    }
   }
 }

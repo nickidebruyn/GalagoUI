@@ -60,18 +60,43 @@ public class Spinner extends TouchButton {
 
   @Override
   public void fireTouchUp(float x, float y, float tpf) {
+//        System.out.println("x="+x+";y="+y);
+//        System.out.println("wx="+widgetNode.getWorldTranslation().x+";y="+widgetNode.getWorldTranslation().y);
 
+    //Only change the options if mouse pressed actions occurred on the left or right side
+    if (!(x == 0 && y == 0)) {
+      int dir = 1;
+      if (x < widgetNode.getWorldTranslation().x) {
+        dir = -1;
+      }
+
+      updateSelection(dir);
+    }
+    super.fireTouchUp(x, y, tpf);
+
+  }
+
+  private void updateSelection(int dir) {
     if (options != null && options.length > 0) {
-      index++;
+      index += dir;
       if (index >= options.length) {
         index = 0;
+      } else if (index < 0) {
+        index = options.length-1;
       }
 
     }
     refreshOptions();
+  }
 
-    super.fireTouchUp(x, y, tpf);
+  public void spinUp() {
+    updateSelection(1);
+    super.fireTouchUp(0, 0, 0);
+  }
 
+  public void spinDown() {
+    updateSelection(-1);
+    super.fireTouchUp(0, 0, 0);
   }
 
   public String[] getOptions() {

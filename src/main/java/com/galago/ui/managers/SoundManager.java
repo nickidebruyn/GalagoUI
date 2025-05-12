@@ -121,17 +121,29 @@ public class SoundManager {
   }
 
   /**
-   * Play a music track
+   * Play's the music at the volume the user has set in the game data
    *
    * @param name
    */
   public void playMusic(String name) {
+    playMusic(name, application.getGameSaves().getGameData().getMusicVolume());
+
+  }
+
+  /**
+   * Play a music track
+   *
+   * @param name
+   */
+  public void playMusic(String name, float volume) {
     if (muteMusic) {
       return;
     }
 
     AudioNode audioNode = music.get(name);
     if (audioNode != null) {
+      setMusicVolume(name, volume);
+
       if (!audioNode.getStatus().equals(AudioSource.Status.Playing)) {
         audioNode.play(); // play continuously!
       } else if (audioNode.getStatus().equals(AudioSource.Status.Paused)) {
@@ -278,15 +290,24 @@ public class SoundManager {
   }
 
   /**
+   * Play the sound at the volume of the user settings
+   * @param name
+   */
+  public void playSound(String name) {
+    playSound(name, application.getGameSaves().getGameData().getSoundVolume());
+  }
+
+  /**
    * Play a sound track
    *
    * @param name
    */
-  public void playSound(String name) {
+  public void playSound(String name, float volume) {
     if (muteSound) {
       return;
     }
 
+    setSoundVolume(name, volume);
     AudioNode audioNode = soundFx.get(name);
     audioNode.playInstance(); // play once!
 

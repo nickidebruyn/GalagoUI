@@ -4,6 +4,8 @@ import com.galago.ui.app.GalagoApplication;
 import com.galago.ui.managers.*;
 import com.jme3.math.ColorRGBA;
 
+import java.io.IOException;
+
 public class ExampleTopDown extends GalagoApplication {
 
     public ExampleTopDown() {
@@ -66,5 +68,10 @@ public class ExampleTopDown extends GalagoApplication {
     @Override
     protected void initFonts(FontManager fontManager) {
 
+    }
+
+    @Override
+    protected Object[] getIconList() throws IOException {
+        return null;
     }
 }

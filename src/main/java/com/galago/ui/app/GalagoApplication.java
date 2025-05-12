@@ -39,13 +39,13 @@ import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
 import com.jme3.system.JmeSystem;
 import com.jme3.system.Platform;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * When using this Galago game library you need to extend the BaseApplication.
@@ -177,7 +177,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
    * @param resizable        It you want the game to be resizable you can always set
    *                         this to true. Normally for an android game this will be false.
    */
-  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, float widthSample, float heightSample, boolean fullscreen) {
+  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, float widthSample, float heightSample, boolean fullscreen, boolean vsync) {
     this.SCREEN_WIDTH = width;
     this.SCREEN_HEIGHT = height;
     this.gameSaveFileName = gameSaveFileName;
@@ -193,15 +193,26 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
 
     AppSettings settings = new AppSettings(true);
     settings.setTitle(title);
+    try {
+      Object[] icons = getIconList();
+      if (icons != null) {
+        settings.setIcons(icons);
+      }
+    } catch (IOException ex) {
+      Logger.getLogger(GalagoApplication.class.getName()).log(Level.SEVERE, null, ex);
+    }
+
     if (widthSample == 0 || heightSample == 0) {
       settings.setWidth((int) SCREEN_WIDTH);
       settings.setHeight((int) SCREEN_HEIGHT);
     } else {
       settings.setWidth((int) widthSample);
       settings.setHeight((int) heightSample);
+      settings.setResizable(true);
+      settings.setCenterWindow(true);
     }
 
-    settings.setVSync(true);
+    settings.setVSync(vsync);
     settings.setUseJoysticks(true);
     settings.setSettingsDialogImage(null);
     settings.setGammaCorrection(false);
@@ -220,7 +231,11 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
   }
 
   public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
-    this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0, false);
+    this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0, false, true);
+  }
+
+  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, boolean vsync) {
+    this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0, false, vsync);
   }
 
   /**
@@ -502,6 +517,10 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
 
     }
 
+    if (joystickInputListener != null) {
+      joystickInputListener.update(tpf);
+    }
+
   }
 
 //    @Override
@@ -735,6 +754,13 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
         getCurrentScreen().getWindow().fireButtonCollision(false, true,
                 inputManager.getCursorPosition().x,
                 inputManager.getCursorPosition().y, tpf);
+      }
+    } else {
+      //Listens to all other type of input mappings
+      if (Input.hasAnalogMapping(name)) {
+        Input.setAnalog(name, value);
+      } else {
+        Input.setAnalog(name, 0);
       }
     }
 
@@ -1615,17 +1641,17 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
         settings.setFrequency(60);
       }
 
-      DisplayMode[] modes = null;
-      try {
-        modes = Display.getAvailableDisplayModes();
-        for (DisplayMode mode : modes) {
-          log("Mode: " + mode.getBitsPerPixel() + ", w: " + mode.getWidth() + ", h: " + mode.getHeight() + "; freq:" + mode.getFrequency());
-
-        }
-
-      } catch (LWJGLException e) {
-        e.printStackTrace();
-      }
+//      DisplayMode[] modes = null;
+//      try {
+//        modes = Display.getAvailableDisplayModes();
+//        for (DisplayMode mode : modes) {
+//          log("Mode: " + mode.getBitsPerPixel() + ", w: " + mode.getWidth() + ", h: " + mode.getHeight() + "; freq:" + mode.getFrequency());
+//
+//        }
+//
+//      } catch (LWJGLException e) {
+//        e.printStackTrace();
+//      }
 
       settings.setWidth(width);
       settings.setHeight(height);
@@ -1660,4 +1686,13 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
     Input.registerInput(name);
 
   }
+
+  public void registerAnalogInputMappings(String name, Trigger... triggers) {
+    inputManager.addMapping(name, triggers);
+    inputManager.addListener(this, name);
+    Input.registerAnalogInput(name);
+
+  }
+
+  protected abstract Object[] getIconList() throws IOException;
 }

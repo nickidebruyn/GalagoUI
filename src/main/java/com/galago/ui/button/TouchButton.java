@@ -61,6 +61,8 @@ public class TouchButton extends ImageWidget implements Touchable {
   protected float lastTouchY = 0;
   protected float padding = 0;
 
+  protected boolean focused = false;
+
   /**
    * @param panel
    * @param id
@@ -640,6 +642,7 @@ public class TouchButton extends ImageWidget implements Touchable {
   public void select(float tpf) {
 
     if (enabled && isClickable()) {
+      focused = true;
       for (Effect effect : effects) {
         effect.fireSelected();
       }
@@ -649,6 +652,7 @@ public class TouchButton extends ImageWidget implements Touchable {
 
   public void unselect(float tpf) {
     if (enabled && isClickable()) {
+      focused = false;
       for (Effect effect : effects) {
         effect.fireUnselected();
       }
@@ -666,5 +670,9 @@ public class TouchButton extends ImageWidget implements Touchable {
       bitmapText.move(offset.x, offset.y, offset.z);
     }
 
+  }
+
+  public boolean isFocused() {
+    return focused;
   }
 }

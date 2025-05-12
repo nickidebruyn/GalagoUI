@@ -22,10 +22,13 @@ public class JoystickEvent {
   private boolean down = false;
   private boolean horizontal = false;
   private boolean vertical = false;
+  private boolean analog = false;
   private float analogValue;
   private int joystickIndex;
 
   private boolean buttonDown = false;
+
+  private boolean button0 = false;
   private boolean button1 = false;
   private boolean button2 = false;
   private boolean button3 = false;
@@ -171,7 +174,15 @@ public class JoystickEvent {
   public void setButton10(boolean button10) {
     this.button10 = button10;
   }
-//
+
+  public boolean isButton0() {
+    return button0;
+  }
+
+  public void setButton0(boolean button0) {
+    this.button0 = button0;
+  }
+  //
 //    public void clearAll() {
 //        buttonDown = false;
 //        left = false;
@@ -192,6 +203,7 @@ public class JoystickEvent {
 //    }
 
   public void clearButtons() {
+    button0 = false;
     button1 = false;
     button2 = false;
     button3 = false;
@@ -214,11 +226,11 @@ public class JoystickEvent {
     axisDown = false;
     horizontal = false;
     vertical = false;
+    analog = false;
   }
 
   public boolean isAxisDown() {
     return axisDown;
-//        return isLeft() || isRight() || isUp() || isDown();
   }
 
   public boolean isHorizontal() {
@@ -247,7 +259,15 @@ public class JoystickEvent {
 
   @Override
   public String toString() {
-    return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", joystickIndex=" + joystickIndex + ", buttonDown=" + buttonDown + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
+    return "JoystickEvent{" + "axisDown=" + axisDown + ", left=" + left + ", right=" + right + ", up=" + up + ", down=" + down + ", analogValue=" + analogValue + ", joystickIndex=" + joystickIndex + ", buttonDown=" + buttonDown + ", button0=" + button0 + ", button1=" + button1 + ", button2=" + button2 + ", button3=" + button3 + ", button4=" + button4 + ", button5=" + button5 + ", button6=" + button6 + ", button7=" + button7 + ", button8=" + button8 + ", button9=" + button9 + ", button10=" + button10 + '}';
+  }
+
+  public boolean isAnalog() {
+    return analog;
+  }
+
+  public void setAnalog(boolean analog) {
+    this.analog = analog;
   }
 
   public JoyAxisEvent getJoyAxisEvent() {
