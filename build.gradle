@@ -27,5 +27,7 @@ dependencies {
     implementation files('libs/sfntly.jar')
     implementation files('libs/android.jar')
     implementation files('libs/universal-tween-engine-6.3.3.jar')
+    //or
+    //implementation "org.mini2Dx:universal-tween-engine:6.3.3"
 
 }
