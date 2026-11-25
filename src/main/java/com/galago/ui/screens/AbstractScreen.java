@@ -279,7 +279,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
       } else {
         //Exit the application
         application.stop();
-        System.exit(0);
+        //System.exit(0);
       }
 
     } else {
@@ -334,7 +334,7 @@ public abstract class AbstractScreen extends AbstractAppState implements EscapeL
       if (previousScreen == null) {
         application.fireAndroidEscapeListener();
         application.stop();
-        System.exit(0);
+        //System.exit(0);
 
       } else {
         //Else you goto the previous screen

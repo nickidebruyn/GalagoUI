@@ -3,14 +3,14 @@ plugins {
 }
 
 group 'com.galago.ui'
-version '1.1.5'
+version '1.1.8'
 
 repositories {
     mavenCentral()
 }
 
 project.ext {
-    jmeVer = '3.8.1-stable'
+    jmeVer = '3.9.0-stable'
 }
 
 dependencies {

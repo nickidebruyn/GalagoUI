@@ -2,6 +2,8 @@ package com.galago.ui.examples;
 
 import com.galago.ui.app.GalagoApplication;
 import com.galago.ui.managers.*;
+import com.galago.ui.saves.DesktopGameSave;
+import com.galago.ui.saves.GameSave;
 import com.jme3.math.ColorRGBA;
 
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class Example1 extends GalagoApplication {
    *
    */
   public Example1() {
-    super("Example1", 1280, 720, "example1.save", null, null, false);
+    super("Example1", 1280, 720, null, null, false, 1280, 720, false, false);
   }
 
   /**
@@ -44,6 +46,11 @@ public class Example1 extends GalagoApplication {
     showScreen(MenuScreen.NAME); //Here tell the app to start of by showing the MenuScreen.
     //showStats();
 
+  }
+
+  @Override
+  protected GameSave initGameSaves() {
+    return new DesktopGameSave("example1.save");
   }
 
   @Override

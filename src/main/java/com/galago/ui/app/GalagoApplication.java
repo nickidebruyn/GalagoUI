@@ -13,7 +13,8 @@ import com.galago.ui.listener.*;
 import com.galago.ui.listeners.*;
 import com.galago.ui.managers.*;
 import com.galago.ui.panel.Panel;
-import com.galago.ui.saves.GameSaves;
+import com.galago.ui.saves.DesktopGameSave;
+import com.galago.ui.saves.GameSave;
 import com.galago.ui.screens.AbstractScreen;
 import com.galago.ui.tween.ColorAccessor;
 import com.galago.ui.tween.SpatialAccessor;
@@ -24,7 +25,6 @@ import com.galago.ui.window.Fader;
 import com.galago.ui.window.Window;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
-import com.jme3.app.state.VideoRecorderAppState;
 import com.jme3.font.BitmapFont;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
@@ -70,7 +70,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
   protected float SCREEN_HEIGHT = 720;
   protected float screenWidth = 1280;
   protected float screenHeight = 720;
-  protected String gameSaveFileName = "defaultgame.save";
+  //protected String gameSaveFileName = "defaultgame.save";
   //    protected String GAME_FONT;
   protected String SPLASH_IMAGE;
   protected Node soundNode;
@@ -87,7 +87,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
   private int loadingTotalCount = 20;
   private Timer loadingTimer = new Timer(1f);
   private Timer soundLoadingTimer = new Timer(0.1f);
-  protected GameSaves gameSaves;
+  protected GameSave gameSaves;
   protected KeyboardInputListener keyboardInputListener;
   protected RemoteActionListener remoteActionListener;
   protected SelectionActionListener selectionActionListener;
@@ -144,7 +144,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
   protected Label info;
   protected String splashInfoMessage = "GalagoUI @ 2020";
   protected ProgressBar loadingBar;
-  protected VideoRecorderAppState recorderAppState;
+  //  protected VideoRecorderAppState recorderAppState;
   protected boolean record = false;
   protected StatsAppState statsAppState;
   protected TweenManager tweenManager;
@@ -169,7 +169,6 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
    * @param width            This will be the native/default width at which your game is
    *                         designed for. Anything different from this at run time will be scaled.
    * @param height           This is the height of the game when it is designed.
-   * @param gameSaveFileName A file for saving player data.
    * @param gameFont         When a different game font wants to be used specific for
    *                         the theme of this game put it her.
    * @param splashImage      This is the path to the splash image you want to use
@@ -177,10 +176,10 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
    * @param resizable        It you want the game to be resizable you can always set
    *                         this to true. Normally for an android game this will be false.
    */
-  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, float widthSample, float heightSample, boolean fullscreen, boolean vsync) {
+  public GalagoApplication(String title, float width, float height, String gameFont, String splashImage, boolean resizable, float widthSample, float heightSample, boolean fullscreen, boolean vsync) {
     this.SCREEN_WIDTH = width;
     this.SCREEN_HEIGHT = height;
-    this.gameSaveFileName = gameSaveFileName;
+//    this.gameSaveFileName = gameSaveFileName;
 //        this.GAME_FONT = gameFont;
 
     if (gameFont == null) {
@@ -229,24 +228,14 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
       start(JmeContext.Type.Display);
     }
   }
-
-  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable) {
-    this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0, false, true);
-  }
-
-  public GalagoApplication(String title, float width, float height, String gameSaveFileName, String gameFont, String splashImage, boolean resizable, boolean vsync) {
-    this(title, width, height, gameSaveFileName, gameFont, splashImage, resizable, 0, 0, false, vsync);
-  }
-
-  /**
-   * If you wish to record video when you run your game you can set this to
-   * true.
-   *
-   * @param record
-   */
-  public void setRecordVideo(boolean record) {
-    this.record = record;
-  }
+//
+//  public GalagoApplication(String title, float width, float height, String gameFont, String splashImage, boolean resizable) {
+//    this(title, width, height, gameFont, splashImage, resizable, 0, 0, false, true);
+//  }
+//
+//  public GalagoApplication(String title, float width, float height, String gameFont, String splashImage, boolean resizable, boolean vsync) {
+//    this(title, width, height, gameFont, splashImage, resizable, 0, 0, false, vsync);
+//  }
 
   /**
    * Called when the camera gets initialized.
@@ -306,10 +295,10 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
     loading = true;
     loadingTimer.start();
 
-    if (record) {
-      recorderAppState = new VideoRecorderAppState();
-      stateManager.attach(recorderAppState);
-    }
+//    if (record) {
+//      recorderAppState = new VideoRecorderAppState();
+//      stateManager.attach(recorderAppState);
+//    }
 
     if (stateManager.getState(StatsAppState.class) != null) {
       StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
@@ -343,10 +332,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
   /**
    * Load the game saves from the file system.
    */
-  protected void initGameSaves() {
-    gameSaves = new GameSaves(this.gameSaveFileName);
-    gameSaves.read();
-  }
+  protected abstract GameSave initGameSaves();
 
   private void updateProgress(String text, int progress) {
     info.setText(text);
@@ -391,7 +377,11 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
 
       if (loadingCounter == 1 && completedCounter != 1) {
         updateProgress("Loading save data...", loadingCounter);
-        initGameSaves();
+        gameSaves = initGameSaves();
+        if (gameSaves == null) {
+          gameSaves = new DesktopGameSave("defaultgame.save");
+
+        }
 //        SharedSystem.getInstance().setBaseApplication(this);
         completedCounter = 1;
       }
@@ -538,7 +528,7 @@ public abstract class GalagoApplication extends SimpleApplication implements Tou
    *
    * @return
    */
-  public GameSaves getGameSaves() {
+  public GameSave getGameSaves() {
     return gameSaves;
   }
 

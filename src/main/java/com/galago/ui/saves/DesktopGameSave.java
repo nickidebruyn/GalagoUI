@@ -10,29 +10,10 @@ import java.util.logging.Logger;
  *
  * @author NideBruyn
  */
-public class GameSaves {
+public class DesktopGameSave extends GameSave {
 
-  private File file;
-  private File levelfile;
-  private String fileName = "defaultgame.save";
-  private GameData gameData;
-
-  /**
-   * @param fileName
-   */
-  public GameSaves(String fileName) {
-    this.fileName = fileName;
-  }
-
-  public GameData getGameData() {
-    if (gameData == null) {
-      gameData = new GameData();
-    }
-    return gameData;
-  }
-
-  public void setGameData(GameData gameData) {
-    this.gameData = gameData;
+  public DesktopGameSave(String fileName) {
+    super(fileName);
   }
 
   /**
@@ -51,7 +32,7 @@ public class GameSaves {
             gameData = (GameData) in.readObject();
 
           } catch (ClassNotFoundException ex) {
-            Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            Logger.getLogger(DesktopGameSave.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
           }
 
         } else {
@@ -61,7 +42,7 @@ public class GameSaves {
         }
 
       } catch (IOException ex) {
-        Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        Logger.getLogger(DesktopGameSave.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
       }
     } else {
     }
@@ -83,17 +64,17 @@ public class GameSaves {
           out.writeObject(gameData);
 
         } catch (FileNotFoundException ex) {
-          Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          Logger.getLogger(DesktopGameSave.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
         } catch (IOException ex) {
-          Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+          Logger.getLogger(DesktopGameSave.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
         } finally {
           if (fileOut != null) {
             try {
               fileOut.close();
             } catch (IOException ex) {
-              Logger.getLogger(GameSaves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+              Logger.getLogger(DesktopGameSave.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
             }
           }
 
